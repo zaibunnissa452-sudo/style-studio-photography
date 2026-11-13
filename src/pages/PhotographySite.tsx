@@ -7,6 +7,8 @@ import { PhotographyOrbitHero } from "./PhotographyOrbitHero";
 import { PhotographyAssistant, whatsappUrl } from "./PhotographyAssistant";
 import { MagneticButton } from "../components/MagneticButton";
 
+const photoAsset = (path: string) => `${import.meta.env.BASE_URL}${path}`;
+
 const stories: Array<{
   title: string;
   category: string;
@@ -27,8 +29,7 @@ const stories: Array<{
     title: "A celebration close to the heart",
     category: "Muslim wedding celebration",
     type: "Weddings",
-    image:
-      "/images/muslim-wedding-client.png",
+    image: photoAsset("images/muslim-wedding-client.png"),
     isClientWork: true,
     className: "story-card story-card-client-photo",
   },
@@ -36,7 +37,7 @@ const stories: Array<{
     title: "A promise written together",
     category: "Muslim wedding ceremony",
     type: "Weddings",
-    image: "/images/photography/muslim-wedding-signing.jpeg",
+    image: photoAsset("images/photography/muslim-wedding-signing.jpeg"),
     isClientWork: true,
     className: "story-card story-card-client-portrait",
   },
@@ -44,7 +45,7 @@ const stories: Array<{
     title: "A moment to begin a life together",
     category: "Muslim wedding celebration",
     type: "Weddings",
-    image: "/images/photography/muslim-wedding-couple.jpeg",
+    image: photoAsset("images/photography/muslim-wedding-couple.jpeg"),
     isClientWork: true,
     className: "story-card",
   },
@@ -100,7 +101,7 @@ const stories: Array<{
     title: "A celebration dinner with friends",
     category: "Celebration dinner",
     type: "Celebrations",
-    image: "/images/photography/celebration-dinner.jpeg",
+    image: photoAsset("images/photography/celebration-dinner.jpeg"),
     isClientWork: true,
     className: "story-card",
   },
@@ -108,7 +109,7 @@ const stories: Array<{
     title: "A birthday bright with sparklers",
     category: "Birthday celebration",
     type: "Birthdays",
-    image: "/images/photography/birthday-sparklers.jpeg",
+    image: photoAsset("images/photography/birthday-sparklers.jpeg"),
     isClientWork: true,
     className: "story-card story-card-client-portrait",
   },
@@ -140,7 +141,7 @@ const stories: Array<{
     title: "An evening under the lights",
     category: "Outdoor celebration setup",
     type: "Celebrations",
-    image: "/images/photography/outdoor-celebration-setup.png",
+    image: photoAsset("images/photography/outdoor-celebration-setup.png"),
     isClientWork: true,
     className: "story-card",
   },
@@ -148,7 +149,7 @@ const stories: Array<{
     title: "Style on display",
     category: "Fashion exhibition",
     type: "Brand & corporate",
-    image: "/images/photography/fashion-exhibition-group.png",
+    image: photoAsset("images/photography/fashion-exhibition-group.png"),
     isClientWork: true,
     className: "story-card",
   },
@@ -156,7 +157,7 @@ const stories: Array<{
     title: "A style statement",
     category: "Fashion exhibition portrait",
     type: "Brand & corporate",
-    image: "/images/photography/fashion-exhibition-model.png",
+    image: photoAsset("images/photography/fashion-exhibition-model.png"),
     isClientWork: true,
     className: "story-card story-card-client-portrait",
   },
@@ -164,7 +165,7 @@ const stories: Array<{
     title: "Together at the exhibition",
     category: "Fashion exhibition",
     type: "Brand & corporate",
-    image: "/images/photography/fashion-exhibition-selfie.png",
+    image: photoAsset("images/photography/fashion-exhibition-selfie.png"),
     isClientWork: true,
     className: "story-card",
   },
@@ -296,7 +297,7 @@ export function PhotographySite() {
       <header className="photo-nav">
         <a className="photo-brand" href="#home">
           <img
-            src="/images/photography/style-studio-logo.png"
+            src={photoAsset("images/photography/style-studio-logo.png")}
             alt="Style Studio Photography — Capture, Cherish, Forever"
           />
         </a>
@@ -325,7 +326,7 @@ export function PhotographySite() {
 
       <PhotographyOrbitHero
         events={heroOrbitEvents}
-        portrait="/images/photography/saleem-portrait-hero.jpg"
+        portrait={photoAsset("images/photography/saleem-portrait-hero.jpg")}
         onOpenStory={setActiveStory}
       />
 
@@ -334,7 +335,7 @@ export function PhotographySite() {
           <div className="photo-photographer-portrait">
             <div className="photo-photographer-portrait-card">
               <img
-                src="/images/photography/saleem-photographer.jpg"
+                src={photoAsset("images/photography/saleem-photographer.jpg")}
                 alt="Saleem, the Style Studio photographer, at an evening event"
               />
               <span className="photo-photographer-caption">
@@ -571,7 +572,7 @@ export function PhotographySite() {
       <footer className="photo-footer">
         <a className="photo-brand" href="#home">
           <img
-            src="/images/photography/style-studio-logo.png"
+            src={photoAsset("images/photography/style-studio-logo.png")}
             alt="Style Studio Photography — Capture, Cherish, Forever"
           />
         </a>
