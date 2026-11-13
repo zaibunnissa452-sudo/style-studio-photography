@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { trackEvent } from "../lib/analytics";
 import "./photography.css";
+import "./photography-orbit.css";
 import { PhotographyOrbitHero } from "./PhotographyOrbitHero";
 import { PhotographyAssistant, whatsappUrl } from "./PhotographyAssistant";
 import { MagneticButton } from "../components/MagneticButton";
@@ -140,7 +141,7 @@ const stories: Array<{
     title: "An evening under the lights",
     category: "Outdoor celebration setup",
     type: "Celebrations",
-    image: photoAsset("images/photography/outdoor-celebration-setup.png"),
+    image: photoAsset("images/photography/outdoor-celebration-setup.webp"),
     isClientWork: true,
     className: "story-card",
   },
@@ -148,7 +149,7 @@ const stories: Array<{
     title: "Style on display",
     category: "Fashion exhibition",
     type: "Brand & corporate",
-    image: photoAsset("images/photography/fashion-exhibition-group.png"),
+    image: photoAsset("images/photography/fashion-exhibition-group.webp"),
     isClientWork: true,
     className: "story-card",
   },
@@ -156,7 +157,7 @@ const stories: Array<{
     title: "A style statement",
     category: "Fashion exhibition portrait",
     type: "Brand & corporate",
-    image: photoAsset("images/photography/fashion-exhibition-model.png"),
+    image: photoAsset("images/photography/fashion-exhibition-model.webp"),
     isClientWork: true,
     className: "story-card story-card-client-portrait",
   },
@@ -164,7 +165,47 @@ const stories: Array<{
     title: "Together at the exhibition",
     category: "Fashion exhibition",
     type: "Brand & corporate",
-    image: photoAsset("images/photography/fashion-exhibition-selfie.png"),
+    image: photoAsset("images/photography/fashion-exhibition-selfie.webp"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "A frame from the evening",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8003.webp"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Light and laughter on the day",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8011.webp"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "A quiet moment, captured",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8827.webp"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Details that tell the story",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC9383.webp"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Gathered together, in the moment",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC9403.webp"),
     isClientWork: true,
     className: "story-card",
   },
@@ -265,7 +306,54 @@ export function PhotographySite() {
   const [activeStory, setActiveStory] = useState<number | null>(null);
   const [activeFilter, setActiveFilter] = useState("All examples");
   const [selectedEventType, setSelectedEventType] = useState("");
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [introVisible, setIntroVisible] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
+  const [introProgress, setIntroProgress] = useState(0);
+  const [introWordIndex, setIntroWordIndex] = useState(0);
   const prefersReducedMotion = useReducedMotion();
+  const introWords = ["Moments", "Stories", "Forever"];
+
+  useEffect(() => {
+    const updateScrollState = () => setIsScrolled(window.scrollY > 28);
+    updateScrollState();
+    window.addEventListener("scroll", updateScrollState, { passive: true });
+    return () => window.removeEventListener("scroll", updateScrollState);
+  }, []);
+
+  useEffect(() => {
+    if (!introVisible) return;
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const startedAt = performance.now();
+    let frame = 0;
+    let finishTimer = 0;
+    const wordTimer = window.setInterval(() => {
+      setIntroWordIndex((index) => (index + 1) % introWords.length);
+    }, 900);
+    const updateProgress = (now: number) => {
+      const progress = Math.min((now - startedAt) / 1900, 1);
+      setIntroProgress(Math.round(progress * 100));
+      if (progress < 1) {
+        frame = window.requestAnimationFrame(updateProgress);
+      } else {
+        finishTimer = window.setTimeout(() => {
+          setIntroVisible(false);
+        }, 180);
+      }
+    };
+    frame = window.requestAnimationFrame(updateProgress);
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.cancelAnimationFrame(frame);
+      window.clearInterval(wordTimer);
+      window.clearTimeout(finishTimer);
+    };
+  }, [introVisible]);
 
   useEffect(() => {
     const previousTitle = document.title;
@@ -333,10 +421,10 @@ export function PhotographySite() {
 
   return (
     <main className="photo-site">
-      <header className="photo-nav">
+      <header className={`photo-nav${isScrolled ? " is-scrolled" : ""}`}>
         <a className="photo-brand" href="#home">
           <img
-            src={photoAsset("images/photography/style-studio-logo.png")}
+            src={photoAsset("images/photography/style-studio-logo.webp")}
             alt="Style Studio Photography — Capture, Cherish, Forever"
           />
         </a>
@@ -354,11 +442,12 @@ export function PhotographySite() {
           </span>
         </button>
         <nav className={menuOpen ? "is-open" : ""} id="photo-navigation" aria-label="Main navigation">
-          <a href="#stories" onClick={closeMenu}>Gallery</a>
-          <a href="#event-services" onClick={closeMenu}>Events</a>
-          <a href="#approach" onClick={closeMenu}>Our approach</a>
+          <a href="#stories" onClick={closeMenu}>Portfolio</a>
+          <a href="#photographer" onClick={closeMenu}>About</a>
+          <a href="#event-services" onClick={closeMenu}>Services</a>
+          <a href="#approach" onClick={closeMenu}>Approach</a>
           <MagneticButton href="#contact" className="photo-nav-cta" onClick={closeMenu}>
-            Check your date <span aria-hidden="true">↗</span>
+            Enquire <span aria-hidden="true">↗</span>
           </MagneticButton>
         </nav>
       </header>
@@ -369,7 +458,7 @@ export function PhotographySite() {
         onOpenStory={setActiveStory}
       />
 
-      <section className="photo-photographer" aria-labelledby="photo-photographer-title">
+      <section className="photo-photographer" id="photographer" aria-labelledby="photo-photographer-title">
         <div className="photo-photographer-layout">
           <div className="photo-photographer-portrait">
             <div className="photo-photographer-portrait-card">
@@ -611,7 +700,7 @@ export function PhotographySite() {
       <footer className="photo-footer">
         <a className="photo-brand" href="#home">
           <img
-            src={photoAsset("images/photography/style-studio-logo.png")}
+            src={photoAsset("images/photography/style-studio-logo.webp")}
             alt="Style Studio Photography — Capture, Cherish, Forever"
           />
         </a>
@@ -619,6 +708,43 @@ export function PhotographySite() {
         <a href="#home">Back to top ↑</a>
       </footer>
       <PhotographyAssistant />
+      <AnimatePresence>
+        {introVisible && (
+          <motion.div
+            className="photo-intro-loader"
+            role="status"
+            aria-label="Loading Style Studio Photography"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -12, transition: { duration: 0.55, ease: [0.76, 0, 0.24, 1] } }}
+          >
+            <div className="photo-intro-loader-top">
+              <span>STYLE STUDIO</span>
+              <span>HYDERABAD · INDIA</span>
+            </div>
+            <div className="photo-intro-loader-center" aria-live="polite">
+              <span className="photo-intro-loader-mark" aria-hidden="true">S</span>
+              <AnimatePresence mode="wait">
+                <motion.p
+                  key={introWords[introWordIndex]}
+                  initial={{ opacity: 0, y: 14, filter: "blur(8px)" }}
+                  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+                  exit={{ opacity: 0, y: -10, filter: "blur(5px)" }}
+                  transition={{ duration: 0.32 }}
+                >
+                  {introWords[introWordIndex]}
+                </motion.p>
+              </AnimatePresence>
+            </div>
+            <div className="photo-intro-loader-bottom">
+              <span>CAPTURE · CHERISH · FOREVER</span>
+              <span>{String(introProgress).padStart(3, "0")}</span>
+              <div className="photo-intro-loader-track" aria-hidden="true">
+                <motion.span animate={{ scaleX: introProgress / 100 }} />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <AnimatePresence>
         {activeStory !== null && (
           <motion.div
@@ -719,10 +845,10 @@ function Reveal({
     <motion.div
       className={className}
       id={id}
-      initial={prefersReducedMotion ? false : { opacity: 0, y: 24 }}
-      whileInView={{ opacity: 1, y: 0 }}
+      initial={prefersReducedMotion ? false : { opacity: 0, y: 28, scale: 0.985, filter: "blur(10px)" }}
+      whileInView={{ opacity: 1, y: 0, scale: 1, filter: "blur(0px)" }}
       viewport={{ once: true, amount: 0.18 }}
-      transition={{ duration: prefersReducedMotion ? 0 : 0.7, delay, ease: [0.22, 1, 0.36, 1] }}
+      transition={{ duration: prefersReducedMotion ? 0 : 0.85, delay, ease: [0.22, 1, 0.36, 1] }}
     >
       {children}
     </motion.div>
