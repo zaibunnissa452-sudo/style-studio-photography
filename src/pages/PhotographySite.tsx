@@ -2,7 +2,6 @@ import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { trackEvent } from "../lib/analytics";
 import "./photography.css";
-import "./photography-orbit.css";
 import { PhotographyOrbitHero } from "./PhotographyOrbitHero";
 import { PhotographyAssistant, whatsappUrl } from "./PhotographyAssistant";
 import { MagneticButton } from "../components/MagneticButton";
@@ -166,6 +165,46 @@ const stories: Array<{
     category: "Fashion exhibition",
     type: "Brand & corporate",
     image: photoAsset("images/photography/fashion-exhibition-selfie.png"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "A frame from the evening",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8003.JPG"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Light and laughter on the day",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8011.JPG"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "A quiet moment, captured",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC8827.JPG"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Details that tell the story",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC9383.JPG"),
+    isClientWork: true,
+    className: "story-card",
+  },
+  {
+    title: "Gathered together, in the moment",
+    category: "Event photography",
+    type: "Celebrations",
+    image: photoAsset("images/photography/_DSC9403.JPG"),
     isClientWork: true,
     className: "story-card",
   },

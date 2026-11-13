@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { motion, useAnimationFrame, useMotionValue, useTransform } from "framer-motion";
+import { motion, useAnimationFrame, useMotionValue, useReducedMotion, useTransform } from "framer-motion";
 
 type OrbitEvent = {
   storyIndex: number;
@@ -59,6 +59,7 @@ function OrbitCard({
 
 export function PhotographyOrbitHero({ events, portrait, onOpenStory }: Props) {
   const rotation = useMotionValue(0);
+  const prefersReducedMotion = useReducedMotion();
   const [width, setWidth] = useState(() => (typeof window === "undefined" ? 1280 : window.innerWidth));
   const radiusX = Math.min(width * (width < 560 ? 0.4 : 0.38), 500);
   const radiusY = width < 560 ? 182 : width < 900 ? 210 : 266;
@@ -71,6 +72,7 @@ export function PhotographyOrbitHero({ events, portrait, onOpenStory }: Props) {
 
   // One full revolution takes about 36 seconds; the cards remain behind the portrait.
   useAnimationFrame((_time, delta) => {
+    if (prefersReducedMotion) return;
     rotation.set((rotation.get() + Math.min(delta, 50) * 0.01) % 360);
   });
 
