@@ -1,0 +1,660 @@
+diff --git a/src/pages/PhotographyShowcase.tsx b/src/pages/PhotographyShowcase.tsx
+index 9e13b44..ba9dba4 100644
+--- a/src/pages/PhotographyShowcase.tsx
++++ b/src/pages/PhotographyShowcase.tsx
+@@ -1,5 +1,13 @@
+-import { useEffect, useRef, useState, type ReactNode } from "react";
+-import { animate, motion, useInView, useReducedMotion, useScroll, useTransform } from "framer-motion";
++import { useEffect, useRef, useState, type CSSProperties, type ReactNode, type RefObject } from "react";
++import {
++  animate,
++  easeInOut,
++  motion,
++  useMotionValueEvent,
++  useReducedMotion,
++  useScroll,
++  useTransform,
++} from "framer-motion";
+ 
+ const EASE: [number, number, number, number] = [0.22, 1, 0.36, 1];
+ 
+@@ -62,68 +70,68 @@ function FadeUp({
+   );
+ }
+ 
+-/* ---------- B. Blue editorial statement ---------- */
+-
+-export function PhotographyEditorial() {
+-  const ref = useRef<HTMLElement>(null);
+-  const prefersReducedMotion = useReducedMotion();
+-  const { scrollYProgress } = useScroll({ target: ref, offset: ["start end", "start 15%"] });
+-  // The blue band rises from the bottom edge of the hero while the section scrolls in.
+-  const bandY = useTransform(scrollYProgress, [0, 1], prefersReducedMotion ? ["0%", "0%"] : ["100%", "0%"]);
++/* ---------- B + C. Pinned sequence: blue editorial -> arch + statistics ---------- */
+ 
++function EditorialText() {
+   return (
+-    <section className="ss-editorial" ref={ref} aria-labelledby="ss-editorial-title">
+-      <motion.div className="ss-editorial-band" style={{ y: bandY }} aria-hidden="true" />
+-      <div className="ss-editorial-inner">
+-        <FadeUp>
+-          <p className="photo-eyebrow">PEOPLE, PLACES &amp; PURPOSEFUL MOMENTS</p>
+-        </FadeUp>
+-        <h2 id="ss-editorial-title">
+-          <RevealWords text="Stories worth telling," delay={0.1} />
+-          <br />
+-          <em>
+-            <RevealWords text="moments worth keeping." delay={0.45} />
+-          </em>
+-        </h2>
+-        <FadeUp className="ss-lede" delay={0.2}>
+-          <p>
+-            Style Studio photographs weddings across faiths, birthdays and family milestones, cultural
+-            celebrations, business events, and press assignments with care and attention to the moments
+-            that matter.
+-          </p>
+-        </FadeUp>
+-      </div>
+-    </section>
++    <div className="ss-editorial-text">
++      <FadeUp>
++        <p className="photo-eyebrow">PEOPLE, PLACES &amp; PURPOSEFUL MOMENTS</p>
++      </FadeUp>
++      <h2 id="ss-editorial-title">
++        <RevealWords text="Stories worth telling," delay={0.1} />
++        <br />
++        <em>
++          <RevealWords text="moments worth keeping." delay={0.45} />
++        </em>
++      </h2>
++      <FadeUp className="ss-lede" delay={0.2}>
++        <p>
++          Style Studio photographs weddings across faiths, birthdays and family milestones, cultural
++          celebrations, business events, and press assignments with care and attention to the moments
++          that matter.
++        </p>
++      </FadeUp>
++    </div>
+   );
+ }
+ 
+-/* ---------- C. Animated statistics ---------- */
++function ArchText() {
++  return (
++    <>
++      <p className="ss-arch-eyebrow">MOHAMMED SALEEMUDDIN</p>
++      <h2 id="ss-stats-title">Over four decades of seeing what matters.</h2>
++      <p className="ss-arch-copy">
++        Photographing the people and in-between moments that make each gathering yours.
++      </p>
++      <p className="ss-arch-signature" aria-hidden="true">Saleem</p>
++    </>
++  );
++}
+ 
+-function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+-  const ref = useRef<HTMLSpanElement>(null);
+-  const inView = useInView(ref, { once: true, amount: 0.6 });
+-  const prefersReducedMotion = useReducedMotion();
+-  const [value, setValue] = useState(prefersReducedMotion ? to : 0);
++function CountUp({ to, suffix = "", play, instant = false }: { to: number; suffix?: string; play: boolean; instant?: boolean }) {
++  const [value, setValue] = useState(0);
+ 
+   useEffect(() => {
+-    if (!inView) return;
+-    if (prefersReducedMotion) {
+-      setValue(to);
++    if (instant) return;
++    if (!play) {
++      setValue(0);
+       return;
+     }
+     const controls = animate(0, to, {
+-      duration: 2.4,
+-      delay: 0.5,
++      duration: 2.2,
++      delay: 0.4,
+       ease: EASE,
+       onUpdate: (latest: number) => setValue(Math.round(latest)),
+     });
+     return () => controls.stop();
+-  }, [inView, prefersReducedMotion, to]);
++  }, [play, instant, to]);
+ 
++  const shown = instant ? to : value;
+   return (
+-    <span ref={ref}>
++    <span>
+       <span aria-hidden="true">
+-        {value}
++        {shown}
+         {suffix}
+       </span>
+       <span className="ss-sr">
+@@ -134,65 +142,156 @@ function CountUp({ to, suffix = "" }: { to: number; suffix?: string }) {
+   );
+ }
+ 
+-export function PhotographyStats() {
+-  const prefersReducedMotion = useReducedMotion();
+-  const still = Boolean(prefersReducedMotion);
+-
+-  const archVariants = {
+-    hidden: still ? { clipPath: "inset(0% 0% 0% 0%)" } : { clipPath: "inset(100% 0% 0% 0%)" },
+-    visible: { clipPath: "inset(0% 0% 0% 0%)", transition: { duration: still ? 0 : 1.2, ease: EASE } },
+-  };
+-  const lineVariants = {
+-    hidden: still ? { scaleX: 1 } : { scaleX: 0 },
+-    visible: { scaleX: 1, transition: { duration: still ? 0 : 0.9, ease: EASE } },
+-  };
+-  const statLeftVariants = {
+-    hidden: still ? { opacity: 1, x: 0 } : { opacity: 0, x: -28 },
+-    visible: { opacity: 1, x: 0, transition: { duration: still ? 0 : 0.9, ease: EASE } },
+-  };
+-  const statRightVariants = {
+-    hidden: still ? { opacity: 1, x: 0, filter: "blur(0px)" } : { opacity: 0, x: 28, filter: "blur(10px)" },
+-    visible: { opacity: 1, x: 0, filter: "blur(0px)", transition: { duration: still ? 0 : 1.4, ease: EASE } },
+-  };
++/** Two real figures only, placed diagonally (top-left and bottom-right); the other two corners stay empty. */
++function StatCorners({ on, instant }: { on: boolean; instant: boolean }) {
++  const state = on ? "visible" : "hidden";
++  const initial = instant ? "visible" : "hidden";
++  const make = (hidden: object, visible: object, delay: number, duration = 0.9) => ({
++    hidden,
++    visible: { ...visible, transition: { duration: instant ? 0 : duration, delay: instant ? 0 : delay, ease: EASE } },
++  });
++  const statLeft = make({ opacity: 0, x: -24 }, { opacity: 1, x: 0 }, 0.2);
++  const statRight = make({ opacity: 0, x: 24, filter: "blur(10px)" }, { opacity: 1, x: 0, filter: "blur(0px)" }, 0.55, 1.3);
++  const lineLeft = make({ pathLength: 0 }, { pathLength: 1 }, 0.35, 1);
++  const lineRight = make({ pathLength: 0 }, { pathLength: 1 }, 0.7, 1);
++  const dotLeft = make({ opacity: 0, scale: 0 }, { opacity: 1, scale: 1 }, 1.2, 0.4);
++  const dotRight = make({ opacity: 0, scale: 0 }, { opacity: 1, scale: 1 }, 1.55, 0.4);
+ 
+   return (
+-    <section className="ss-stats" id="experience" aria-labelledby="ss-stats-title">
+-      <motion.div
+-        className="ss-stats-stage"
+-        initial="hidden"
+-        whileInView="visible"
+-        viewport={{ once: true, amount: 0.35 }}
+-        variants={{ hidden: {}, visible: { transition: { staggerChildren: still ? 0 : 0.22, delayChildren: 0.05 } } }}
+-      >
+-        <motion.div className="ss-stat ss-stat-left" variants={statLeftVariants}>
+-          <p className="ss-stat-number">
+-            <CountUp to={40} suffix="+" />
+-          </p>
+-          <p className="ss-stat-caption">Years of photography experience</p>
+-        </motion.div>
++    <>
++      <motion.div className="ss-stat ss-stat-left" initial={initial} animate={state} variants={statLeft}>
++        <p className="ss-stat-number">
++          <CountUp to={40} suffix="+" play={on} instant={instant} />
++        </p>
++        <p className="ss-stat-caption">Years of photography experience</p>
++      </motion.div>
+ 
+-        <motion.span className="ss-line ss-line-left" variants={lineVariants} aria-hidden="true" />
++      <span className="ss-conn ss-conn-left" aria-hidden="true">
++        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
++          <motion.path d="M 0 20 L 40 20 L 100 66" initial={initial} animate={state} variants={lineLeft} />
++        </svg>
++        <motion.span className="ss-conn-dot" initial={initial} animate={state} variants={dotLeft} />
++      </span>
+ 
+-        <motion.div className="ss-arch" variants={archVariants}>
+-          <p className="ss-arch-eyebrow">MOHAMMED SALEEMUDDIN</p>
+-          <h2 id="ss-stats-title">Over four decades of seeing what matters.</h2>
+-          <p className="ss-arch-copy">
+-            Photographing the people and in-between moments that make each gathering yours.
+-          </p>
+-          <p className="ss-arch-signature" aria-hidden="true">Saleem</p>
+-        </motion.div>
++      <span className="ss-conn ss-conn-right" aria-hidden="true">
++        <svg viewBox="0 0 100 100" preserveAspectRatio="none">
++          <motion.path d="M 100 66 L 60 66 L 0 34" initial={initial} animate={state} variants={lineRight} />
++        </svg>
++        <motion.span className="ss-conn-dot" initial={initial} animate={state} variants={dotRight} />
++      </span>
++
++      <motion.div className="ss-stat ss-stat-right" initial={initial} animate={state} variants={statRight}>
++        <p className="ss-stat-number ss-stat-word">Countless</p>
++        <p className="ss-stat-caption">Photoshoots completed over the years</p>
++      </motion.div>
++    </>
++  );
++}
++
++const ARCH_MAX_W = 350;
+ 
+-        <motion.span className="ss-line ss-line-right" variants={lineVariants} aria-hidden="true" />
++/** Stage size and arch geometry; the breakpoint matches the CSS (max-width: 899px). */
++function useStageGeometry(ref: RefObject<HTMLDivElement | null>) {
++  const [geo, setGeo] = useState({ w: 1280, h: 800, compact: false });
+ 
+-        <motion.div className="ss-stat ss-stat-right" variants={statRightVariants}>
+-          <p className="ss-stat-number ss-stat-word">Countless</p>
+-          <p className="ss-stat-caption">Photoshoots completed over the years</p>
++  useEffect(() => {
++    const el = ref.current;
++    if (!el) return;
++    const update = () => {
++      const w = el.clientWidth;
++      const h = el.clientHeight;
++      const compact = window.matchMedia("(max-width: 899px)").matches;
++      setGeo((prev) => (prev.w === w && prev.h === h && prev.compact === compact ? prev : { w, h, compact }));
++    };
++    update();
++    const observer = new ResizeObserver(update);
++    observer.observe(el);
++    window.addEventListener("orientationchange", update);
++    return () => {
++      observer.disconnect();
++      window.removeEventListener("orientationchange", update);
++    };
++  }, [ref]);
++
++  const archW = Math.round(Math.min(ARCH_MAX_W, geo.w * (geo.compact ? 0.78 : 0.3)));
++  const archH = Math.round(geo.compact ? Math.min(500, geo.h * 0.62) : Math.min(560, geo.h * 0.74));
++  return { ...geo, archW, archH };
++}
++
++function PinnedSequence() {
++  const sectionRef = useRef<HTMLElement>(null);
++  const stageRef = useRef<HTMLDivElement>(null);
++  const { w, h, archW, archH } = useStageGeometry(stageRef);
++  const [statsOn, setStatsOn] = useState(false);
++
++  // 0 when the stage pins to the top of the viewport, 1 when it is released.
++  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start start", "end end"] });
++  useMotionValueEvent(scrollYProgress, "change", (latest) => setStatsOn(latest > 0.5));
++
++  const insetX = Math.max(0, (w - archW) / 2);
++  const insetY = Math.max(0, (h - archH) / 2);
++  const clipFrom = "inset(0px 0px 0px 0px round 0px 0px 0px 0px)";
++  const clipTo = `inset(${insetY}px ${insetX}px ${insetY}px ${insetX}px round ${archW / 2}px ${archW / 2}px 18px 18px)`;
++
++  // One continuous move: the full-bleed blue collapses into the arch while the text hands over.
++  const clipPath = useTransform(scrollYProgress, [0.18, 0.52], [clipFrom, clipTo], { ease: easeInOut });
++  const editorialOpacity = useTransform(scrollYProgress, [0.14, 0.27], [1, 0]);
++  const editorialY = useTransform(scrollYProgress, [0, 0.27], [0, -40]);
++  const archOpacity = useTransform(scrollYProgress, [0.42, 0.56], [0, 1]);
++  const archY = useTransform(scrollYProgress, [0.42, 0.56], [24, 0]);
++  const ghostOpacity = useTransform(scrollYProgress, [0.3, 0.55], [0, 1]);
++  const ghostY = useTransform(scrollYProgress, [0, 1], [40, -40]);
++
++  return (
++    <section className="ss-seq" id="experience" ref={sectionRef} aria-labelledby="ss-editorial-title">
++      <div
++        className="ss-seq-stage"
++        ref={stageRef}
++        style={{ "--arch-w": `${archW}px`, "--arch-h": `${archH}px` } as CSSProperties}
++      >
++        <motion.p className="ss-ghost" style={{ opacity: ghostOpacity, y: ghostY }} aria-hidden="true">
++          STYLE STUDIO
++        </motion.p>
++        <motion.div className="ss-seq-blue" style={{ clipPath }} aria-hidden="true" />
++        <motion.div className="ss-seq-editorial" style={{ opacity: editorialOpacity, y: editorialY }}>
++          <EditorialText />
+         </motion.div>
+-      </motion.div>
++        <div className="ss-seq-grid">
++          <motion.div className="ss-arch-content" style={{ opacity: archOpacity, y: archY }}>
++            <ArchText />
++          </motion.div>
++          <StatCorners on={statsOn} instant={false} />
++        </div>
++      </div>
+     </section>
+   );
+ }
+ 
++/** Reduced motion: no pinning or scroll-linked movement; the same content as two static sections. */
++function StaticSequence() {
++  return (
++    <>
++      <section className="ss-editorial-static" id="experience" aria-labelledby="ss-editorial-title">
++        <EditorialText />
++      </section>
++      <section className="ss-seq-static" aria-labelledby="ss-stats-title">
++        <p className="ss-ghost ss-ghost-static" aria-hidden="true">STYLE STUDIO</p>
++        <div className="ss-seq-grid ss-seq-grid-static">
++          <div className="ss-arch-content ss-arch-static">
++            <ArchText />
++          </div>
++          <StatCorners on instant />
++        </div>
++      </section>
++    </>
++  );
++}
++
++export function PhotographySequence() {
++  const prefersReducedMotion = useReducedMotion();
++  return prefersReducedMotion ? <StaticSequence /> : <PinnedSequence />;
++}
++
+ /* ---------- D. Numbered portfolio showcase ---------- */
+ 
+ export type ShowcaseImage = {
+diff --git a/src/pages/PhotographySite.tsx b/src/pages/PhotographySite.tsx
+index 4d006cb..d7f1b09 100644
+--- a/src/pages/PhotographySite.tsx
++++ b/src/pages/PhotographySite.tsx
+@@ -6,9 +6,8 @@ import "./photography-orbit.css";
+ import "./photography-showcase.css";
+ import { PhotographyOrbitHero } from "./PhotographyOrbitHero";
+ import {
+-  PhotographyEditorial,
++  PhotographySequence,
+   PhotographyShowcase,
+-  PhotographyStats,
+   type ShowcaseProject,
+ } from "./PhotographyShowcase";
+ import { PhotographyAssistant, whatsappUrl } from "./PhotographyAssistant";
+@@ -499,8 +498,7 @@ export function PhotographySite() {
+         onOpenStory={setActiveStory}
+       />
+ 
+-      <PhotographyEditorial />
+-      <PhotographyStats />
++      <PhotographySequence />
+ 
+       <section className="photo-photographer" id="photographer" aria-labelledby="photo-photographer-title">
+         <div className="photo-photographer-layout">
+diff --git a/src/pages/photography-showcase.css b/src/pages/photography-showcase.css
+index cd1996f..eaae33e 100644
+--- a/src/pages/photography-showcase.css
++++ b/src/pages/photography-showcase.css
+@@ -21,37 +21,85 @@
+ }
+ .ss-word { display: inline-block; will-change: transform; }
+ 
+-/* ---------- Blue editorial ---------- */
+-.ss-editorial {
++/* ---------- Pinned sequence: blue editorial -> arch + statistics ---------- */
++.ss-seq {
+   position: relative;
+-  isolation: isolate;
++  height: 300vh;
++  height: 300svh;
++  background: #050608;
++}
++.ss-seq-stage {
++  position: sticky;
++  top: 0;
++  height: 100vh;
++  height: 100svh;
+   overflow: hidden;
+-  background: #0f1011;
++  isolation: isolate;
++  background: #050608;
+   color: #fff;
+ }
+-.ss-editorial-band {
++.ss-seq-stage::before,
++.ss-seq-static::before {
++  content: "";
+   position: absolute;
+   inset: 0;
+-  z-index: -1;
+-  background:
+-    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.1), transparent 60%),
+-    linear-gradient(180deg, #2f5fb0 0%, #1f4383 100%);
+-  will-change: transform;
++  z-index: 0;
++  pointer-events: none;
++  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 12.5%);
++  -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
++  mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+ }
+-.ss-editorial-inner {
+-  max-width: 980px;
+-  margin: 0 auto;
+-  padding: clamp(110px, 15vw, 210px) 28px;
++
++/* Giant faint watermark behind the arch */
++.ss-ghost {
++  position: absolute;
++  z-index: 1;
++  top: 7%;
++  left: 0;
++  right: 0;
++  margin: 0;
+   text-align: center;
++  white-space: nowrap;
++  pointer-events: none;
++  user-select: none;
++  color: rgba(168, 193, 255, 0.07);
++  font-family: "Playfair Display", Georgia, "Times New Roman", serif;
++  font-size: clamp(72px, 15.5vw, 250px);
++  line-height: 1;
++  letter-spacing: 0.02em;
++}
++
++/* Full-bleed blue that collapses into the arch (clip-path is driven by scroll) */
++.ss-seq-blue {
++  position: absolute;
++  inset: 0;
++  z-index: 2;
++  background:
++    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.12), transparent 60%),
++    linear-gradient(180deg, #3d70c6 0%, #2a508f 55%, #1d3e78 100%);
++  will-change: clip-path;
++}
++
++/* Blue-phase statement */
++.ss-seq-editorial {
++  position: absolute;
++  inset: 0;
++  z-index: 3;
++  display: flex;
++  align-items: center;
++  justify-content: center;
++  padding: 0 28px;
++  pointer-events: none;
+ }
+-.ss-editorial .photo-eyebrow { color: rgba(255, 255, 255, 0.74); }
+-.photo-site .ss-editorial h2 {
++.ss-editorial-text { max-width: 980px; text-align: center; color: #fff; }
++.ss-editorial-text .photo-eyebrow { color: rgba(255, 255, 255, 0.74); }
++.photo-site .ss-editorial-text h2 {
+   color: #fff;
+   font-size: clamp(38px, 5.8vw, 88px);
+   line-height: 1.05;
+   margin: 24px 0 28px;
+ }
+-.photo-site .ss-editorial h2 em { color: rgba(255, 255, 255, 0.7); }
++.photo-site .ss-editorial-text h2 em { color: rgba(255, 255, 255, 0.7); }
+ .ss-lede p {
+   max-width: 560px;
+   margin: 0 auto;
+@@ -59,40 +107,46 @@
+   font-size: clamp(15px, 1.3vw, 17px);
+ }
+ 
+-/* ---------- Statistics ---------- */
+-.ss-stats {
+-  position: relative;
+-  overflow: hidden;
+-  background: #050608;
+-  padding: clamp(80px, 10vw, 150px) 5%;
++/* Four-corner composition: arch in the middle, two real figures on one diagonal */
++.ss-seq-grid {
++  position: absolute;
++  z-index: 4;
++  left: 50%;
++  top: 50%;
++  width: min(1280px, 92vw);
++  height: var(--arch-h);
++  transform: translate(-50%, -50%);
++  display: grid;
++  grid-template-columns: minmax(0, 1fr) clamp(36px, 7vw, 110px) var(--arch-w) clamp(36px, 7vw, 110px) minmax(0, 1fr);
++  grid-template-rows: 1fr 1fr;
++  grid-template-areas:
++    "sl ll arch . ."
++    ". . arch lr sr";
+ }
+-.ss-stats::before {
+-  content: "";
++.ss-stat-left { grid-area: sl; align-self: start; text-align: right; }
++.ss-conn-left { grid-area: ll; }
++.ss-arch-content { grid-area: arch; }
++.ss-conn-right { grid-area: lr; }
++.ss-stat-right { grid-area: sr; align-self: end; text-align: left; }
++
++.ss-conn { position: relative; display: block; width: 100%; height: 100%; }
++.ss-conn svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
++.ss-conn path {
++  fill: none;
++  stroke: rgba(143, 176, 255, 0.8);
++  stroke-width: 1;
++  vector-effect: non-scaling-stroke;
++}
++.ss-conn-dot {
+   position: absolute;
+-  inset: 0;
+-  pointer-events: none;
+-  background: repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 12.5%);
+-  -webkit-mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
+-  mask-image: radial-gradient(ellipse at center, #000 25%, transparent 75%);
++  width: 7px;
++  height: 7px;
++  margin: -3.5px 0 0 -3.5px;
++  border-radius: 50%;
++  background: #a8c1ff;
+ }
+-.ss-stats-stage {
+-  position: relative;
+-  max-width: 1280px;
+-  margin: 0 auto;
+-  display: grid;
+-  align-items: center;
+-  grid-template-columns: minmax(0, 1fr) clamp(36px, 7vw, 110px) minmax(260px, 350px) clamp(36px, 7vw, 110px) minmax(0, 1fr);
+-}
+-.ss-stat-left { grid-column: 1; text-align: right; }
+-.ss-line-left { grid-column: 2; transform-origin: left center; background: linear-gradient(90deg, rgba(143, 176, 255, 0), rgba(143, 176, 255, 0.85)); }
+-.ss-arch { grid-column: 3; }
+-.ss-line-right { grid-column: 4; transform-origin: right center; background: linear-gradient(270deg, rgba(143, 176, 255, 0), rgba(143, 176, 255, 0.85)); }
+-.ss-stat-right { grid-column: 5; text-align: left; }
+-.ss-stat-left,
+-.ss-line,
+-.ss-arch,
+-.ss-stat-right { grid-row: 1; }
+-.ss-line { display: block; height: 1px; }
++.ss-conn-left .ss-conn-dot { left: 100%; top: 66%; }
++.ss-conn-right .ss-conn-dot { left: 0; top: 34%; }
+ 
+ .ss-stat-number {
+   margin: 0;
+@@ -116,21 +170,25 @@
+ }
+ .ss-stat-left .ss-stat-caption { margin-left: auto; }
+ 
+-.ss-arch {
++.ss-arch-content {
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 16px;
+-  min-height: clamp(440px, 46vw, 560px);
+-  padding: clamp(70px, 8vw, 112px) 30px 44px;
+-  border-radius: 999px 999px 18px 18px;
++  box-sizing: border-box;
++  width: 100%;
++  padding: clamp(64px, 8vw, 104px) 28px 40px;
+   text-align: center;
++}
++.ss-arch-static {
++  height: 100%;
++  border-radius: 999px 999px 18px 18px;
+   background: linear-gradient(180deg, #4175cb 0%, #26498b 55%, #1b3a72 100%);
+   box-shadow: 0 40px 120px rgba(36, 72, 138, 0.35);
+ }
+ .ss-arch-eyebrow { margin: 0; color: rgba(255, 255, 255, 0.68); font-size: 10px; letter-spacing: 0.2em; }
+-.photo-site .ss-arch h2 { color: #fff; font-size: clamp(26px, 2.5vw, 36px); line-height: 1.14; }
++.photo-site .ss-arch-content h2 { color: #fff; font-size: clamp(24px, 2.4vw, 34px); line-height: 1.14; margin: 0; }
+ .ss-arch-copy { margin: 0; max-width: 250px; color: rgba(255, 255, 255, 0.8); font-size: 13px; line-height: 1.65; }
+ .ss-arch-signature {
+   margin: 6px 0 0;
+@@ -140,6 +198,26 @@
+   font-style: italic;
+ }
+ 
++/* Reduced-motion version: same content, no pinning */
++.ss-editorial-static {
++  padding: clamp(110px, 15vw, 210px) 28px;
++  background:
++    radial-gradient(ellipse at 50% 0%, rgba(255, 255, 255, 0.12), transparent 60%),
++    linear-gradient(180deg, #3d70c6 0%, #2a508f 55%, #1d3e78 100%);
++}
++.ss-editorial-static .ss-editorial-text { margin: 0 auto; }
++.ss-seq-static {
++  --arch-w: min(350px, 78vw);
++  --arch-h: min(540px, 72vh);
++  position: relative;
++  overflow: hidden;
++  isolation: isolate;
++  background: #050608;
++  padding: clamp(80px, 10vw, 150px) 0;
++}
++.ss-ghost-static { top: 4%; }
++.ss-seq-grid-static { position: relative; left: auto; top: auto; transform: none; margin: 0 auto; }
++
+ /* ---------- Numbered showcase ---------- */
+ .ss-showcase { background: #07080a; padding: clamp(72px, 9vw, 128px) 7.2%; }
+ .ss-showcase-head {
+@@ -233,16 +311,34 @@
+ .ss-panel-button:focus-visible .ss-panel-label { transform: translateY(0); opacity: 1; }
+ 
+ /* ---------- Responsive ---------- */
+-@media (max-width: 900px) {
+-  .ss-stats-stage { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 40px 20px; }
+-  .ss-arch { grid-column: 1 / -1; grid-row: 1; width: min(100%, 340px); margin: 0 auto; }
+-  .ss-line { display: none; }
+-  .ss-stat-left,
+-  .ss-stat-right { grid-row: 2; text-align: center; }
+-  .ss-stat-left { grid-column: 1; }
+-  .ss-stat-right { grid-column: 2; }
+-  .ss-stat-caption,
+-  .ss-stat-left .ss-stat-caption { margin-left: auto; margin-right: auto; }
++@media (max-width: 899px) {
++  .ss-seq-grid {
++    left: 0;
++    top: 0;
++    width: 100%;
++    height: 100%;
++    transform: none;
++    box-sizing: border-box;
++    padding: 0 6%;
++    grid-template-columns: minmax(0, 1fr);
++    grid-template-rows: 1fr var(--arch-h) 1fr;
++    grid-template-areas: "sl" "arch" "sr";
++  }
++  .ss-seq-grid-static {
++    height: auto;
++    padding: 0 6%;
++    grid-template-rows: auto var(--arch-h) auto;
++    row-gap: 28px;
++  }
++  .ss-conn { display: none; }
++  .ss-arch-content { justify-self: center; width: var(--arch-w); padding: 52px 20px 30px; gap: 12px; }
++  .photo-site .ss-arch-content h2 { font-size: 24px; }
++  .ss-arch-copy { font-size: 12.5px; }
++  .ss-arch-signature { font-size: 26px; margin-top: 2px; }
++  .ss-stat-left { justify-self: start; align-self: end; padding-bottom: 18px; text-align: left; }
++  .ss-stat-right { justify-self: end; align-self: start; padding-top: 18px; text-align: right; }
++  .ss-stat-left .ss-stat-caption { margin-left: 0; }
++  .ss-stat-right .ss-stat-caption { margin-left: auto; }
+ }
+ 
+ @media (max-width: 760px) {
+@@ -258,7 +354,7 @@
+ }
+ 
+ @media (max-width: 420px) {
+-  .ss-stat-number { font-size: clamp(48px, 15vw, 64px); }
++  .ss-stat-number { font-size: clamp(44px, 13vw, 56px); }
+   .ss-stat-number.ss-stat-word { font-size: clamp(30px, 9vw, 40px); }
+   .ss-stat-caption { font-size: 10px; letter-spacing: 0.12em; }
+ }
