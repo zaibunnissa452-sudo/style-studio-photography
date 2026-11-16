@@ -1,4 +1,25 @@
 /* Dark, cinematic portfolio system for the Style Studio photography route. */
+.photo-skip-link {
+  position: fixed;
+  z-index: 9999;
+  top: -100%;
+  left: 16px;
+  padding: 10px 18px;
+  background: #dceeff;
+  color: #050910;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: top 0.18s ease;
+}
+.photo-skip-link:focus {
+  top: 12px;
+  outline: 2px solid #5f9bdc;
+  outline-offset: 2px;
+}
+
 .photo-site {
   --photo-ink: #f6f7fb;
   --photo-paper: #03050a;
@@ -243,7 +264,6 @@
   height: clamp(420px, 52vh, 520px);
   margin: 5px auto 0;
   perspective: 1500px;
-  transform-style: preserve-3d;
 }
 .photo-orbit-stage::before {
   position: absolute;
@@ -272,9 +292,16 @@
   pointer-events: none;
   transform: translate(-50%, -50%);
 }
+.photo-orbit-track {
+ position: absolute;
+ z-index: 2;
+ inset: 0;
+ pointer-events: none;
+}
 .photo-orbit-card {
   position: absolute;
   z-index: 10;
+ pointer-events: auto;
   top: 43%;
   left: 50%;
   width: clamp(126px, 12vw, 176px);
@@ -287,7 +314,7 @@
   color: #f4f8ff;
   text-align: left;
   box-shadow: 0 24px 75px rgba(0, 0, 0, .64), 0 0 30px rgba(34, 80, 135, .13);
-  transform-style: preserve-3d;
+  transform-style: flat;
   cursor: pointer;
   will-change: transform;
 }
@@ -305,7 +332,7 @@
 }
 .photo-orbit-portrait {
   position: absolute;
-  z-index: 20;
+  z-index: 3;
   top: 52%;
   left: 50%;
   width: auto;
@@ -317,6 +344,7 @@
   background: #070a0f;
   box-shadow: 0 30px 100px rgba(0, 0, 0, .72), 0 0 45px rgba(63, 120, 187, .18);
   transform: translate(-50%, -50%);
+  animation: photo-portrait-float 6s ease-in-out infinite;
 }
 .photo-orbit-portrait > img { display: block; width: 100%; height: 100%; object-fit: cover; object-position: center 50%; transform: scale(1.9); transform-origin: 50% 66%; }
 .photo-orbit-toggle {
@@ -489,6 +517,11 @@
   background: #080c13;
   box-shadow: 0 30px 100px rgba(0, 0, 0, .5), 0 0 45px rgba(47, 96, 153, .12);
   transform-style: preserve-3d;
+  transition: transform .45s cubic-bezier(.2,.7,.2,1), box-shadow .45s ease;
+}
+.photo-photographer-portrait:hover .photo-photographer-portrait-card {
+  transform: rotateY(6deg) rotateX(-4deg);
+  box-shadow: 0 38px 110px rgba(0, 0, 0, .58), 0 0 60px rgba(47, 96, 153, .2);
 }
 .photo-photographer-portrait-card::before { position: absolute; z-index: 0; inset: 12px -16px -18px 14px; border: 1px solid rgba(159, 202, 250, .24); border-radius: 10px; content: ""; transform: translateZ(-20px) rotate(3deg); }
 .photo-photographer-portrait img { position: relative; z-index: 1; display: block; width: 100%; height: 100%; border: 0; border-radius: 8px; object-fit: cover; object-position: center 60%; }
@@ -764,11 +797,46 @@
 @media (prefers-reduced-motion: reduce) {
   .photo-orbit-hero::before,
   .photo-orbit-scroll i::after,
-  .photo-orbit-portrait { animation: none !important; }
-  .photo-nav nav,
-  .photo-event-card,
-  .photo-story-button img,
-  .photo-button,
-  .photo-button-light,
-  .photo-orbit-toggle { transition-duration: .01ms !important; }
+  .photo-orbit-portrait,
+  .photo-orbit-portrait > img { animation: none !important; transition-duration: .01ms !important; }
+  .photo-photographer-portrait:hover .photo-photographer-portrait-card { transform: none; }
 }
+
+
+/* SCENE 1 CINEMATIC OPENING ENHANCEMENT */
+.photo-orbit-ambient-image { filter: blur(8px) saturate(.92) brightness(.48) contrast(1.12); }
+.photo-orbit-ambient::before { content: ""; position: absolute; z-index: 1; inset: -22%; pointer-events: none; background: radial-gradient(ellipse at 50% 45%, rgba(100,145,255,.22) 0%, rgba(53,91,180,.12) 24%, transparent 58%), radial-gradient(ellipse at 78% 28%, rgba(218,178,125,.10) 0%, transparent 38%); mix-blend-mode: screen; opacity: .85; animation: photo-cinema-spotlight 24s ease-in-out infinite alternate; }
+.photo-orbit-ambient::after { content: ""; position: absolute; z-index: 2; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(2,5,12,.48), transparent 24%, transparent 72%, rgba(2,5,12,.42)), linear-gradient(0deg, rgba(2,5,12,.42), transparent 34%, rgba(2,5,12,.12)); }
+@keyframes photo-cinema-spotlight { 0% { transform: translate3d(-5%,2%,0) scale(.94) rotate(-5deg); } 50% { transform: translate3d(2%,-2%,0) scale(1.04) rotate(1deg); } 100% { transform: translate3d(6%,3%,0) scale(1.1) rotate(5deg); } }
+@media (max-width: 760px) { .photo-orbit-ambient-image { filter: blur(7px) saturate(.88) brightness(.5) contrast(1.08); } .photo-orbit-ambient::before { opacity: .62; } }
+@media (prefers-reduced-motion: reduce) { .photo-orbit-ambient::before { animation: none !important; transform: none !important; } }
+/* SCENE 1 3D DEPTH AND MOTION PASS */
+.photo-orbit-stage { perspective: 1050px; transform-style: preserve-3d; }
+.photo-orbit-track { transform-style: preserve-3d; }
+.photo-orbit-card { transform-style: preserve-3d; backface-visibility: hidden; }
+.photo-orbit-card img { transform: translateZ(30px) scale(1.1); transition: transform .8s cubic-bezier(.16,1,.3,1), filter .8s ease; filter: saturate(1.08) contrast(1.04); }
+.photo-orbit-card:hover img { transform: translateZ(52px) scale(1.16); filter: saturate(1.2) contrast(1.08); }
+.photo-orbit-card-caption { transform: translateZ(38px); }
+.photo-orbit-portrait { transform-style: preserve-3d; transform-origin: 50% 50%; animation: photo-portrait-3d-camera 8s cubic-bezier(.45,0,.55,1) infinite; will-change: transform; }
+@keyframes photo-portrait-3d-camera {
+  0%, 100% { transform: translate(-50%, -50%) translate3d(0, 7px, 34px) rotateY(-6deg) rotateX(2deg) scale(1.015); }
+  25% { transform: translate(-50%, -50%) translate3d(-9px, -5px, 62px) rotateY(5deg) rotateX(-2deg) scale(1.045); }
+  50% { transform: translate(-50%, -50%) translate3d(0, -12px, 78px) rotateY(2deg) rotateX(3deg) scale(1.06); }
+  75% { transform: translate(-50%, -50%) translate3d(9px, -3px, 48px) rotateY(-5deg) rotateX(-2deg) scale(1.03); }
+}
+
+@media (max-width: 760px) {
+.photo-orbit-stage { perspective: 850px; }
+.photo-orbit-card img { transform: translateZ(16px) scale(1.06); }
+.photo-orbit-portrait { animation-duration: 10s; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+.photo-orbit-portrait { animation: none !important; transform: translate(-50%, -50%); }
+.photo-orbit-card img { animation: none !important; transform: none; }
+.photo-orbit-card:hover img { transform: none; }
+}
+/* FIX: KEEP ORBIT CARDS BEHIND HERO PORTRAIT */
+.photo-orbit-stage { transform-style: flat; }
+.photo-orbit-track { transform-style: flat; z-index: 2; }
+.photo-orbit-portrait { z-index: 3; transform-style: preserve-3d; }

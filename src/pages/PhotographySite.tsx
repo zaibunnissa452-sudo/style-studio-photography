@@ -1,9 +1,15 @@
 import { useEffect, useState, type FormEvent, type ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion, useScroll, useSpring } from "framer-motion";
 import { trackEvent } from "../lib/analytics";
 import "./photography.css";
 import "./photography-orbit.css";
+import "./photography-showcase.css";
 import { PhotographyOrbitHero } from "./PhotographyOrbitHero";
+import {
+  PhotographySequence,
+  PhotographyShowcase,
+  type ShowcaseProject,
+} from "./PhotographyShowcase";
 import { PhotographyAssistant, whatsappUrl } from "./PhotographyAssistant";
 import { MagneticButton } from "../components/MagneticButton";
 
@@ -260,6 +266,40 @@ const heroOrbitEvents = orbitStoryIndices.map((storyIndex) => ({
   title: stories[storyIndex].category,
 }));
 
+// Numbered showcase: only Style Studio photographs from the stories list above.
+const showcaseImage = (path: string) => {
+  const src = photoAsset(path);
+  const storyIndex = stories.findIndex((story) => story.image === src);
+  return { src, storyIndex, label: storyIndex >= 0 ? stories[storyIndex].category : "Style Studio" };
+};
+
+const showcaseProjects: readonly ShowcaseProject[] = [
+  {
+    number: "01",
+    title: "Weddings across all faiths",
+    description:
+      "Respectful coverage for Hindu, Muslim, Christian, Sikh, Buddhist, Jewish, Jain, interfaith, and other faith and cultural traditions.",
+    main: { ...showcaseImage("images/photography/muslim-wedding-couple.jpeg"), ratio: "portrait" },
+    small: showcaseImage("images/photography/muslim-wedding-signing.jpeg"),
+  },
+  {
+    number: "02",
+    title: "Birthdays & family milestones",
+    description:
+      "Birthdays, anniversaries, family gatherings, and the milestones you want to remember.",
+    main: { ...showcaseImage("images/photography/birthday-sparklers.jpeg"), ratio: "tall" },
+    small: showcaseImage("images/photography/celebration-dinner.jpeg"),
+  },
+  {
+    number: "03",
+    title: "Brands & business",
+    description:
+      "Product launches, corporate events, promotional campaigns, and business milestones.",
+    main: { ...showcaseImage("images/photography/fashion-exhibition-group.webp"), ratio: "landscape" },
+    small: showcaseImage("images/photography/fashion-exhibition-model.webp"),
+  },
+];
+
 const eventTypes = [
   "Wedding (all faiths & traditions)",
   "Birthday / family celebration",
@@ -314,6 +354,8 @@ export function PhotographySite() {
   const [introProgress, setIntroProgress] = useState(0);
   const [introWordIndex, setIntroWordIndex] = useState(0);
   const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+  const smoothScrollProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 30, restDelta: 0.001 });
   const introWords = ["Moments", "Stories", "Forever"];
 
   useEffect(() => {
@@ -421,6 +463,7 @@ export function PhotographySite() {
 
   return (
     <main className="photo-site">
+      <motion.div className="photo-scroll-progress" aria-hidden="true" style={{ scaleX: prefersReducedMotion ? 0 : smoothScrollProgress }} />
       <header className={`photo-nav${isScrolled ? " is-scrolled" : ""}`}>
         <a className="photo-brand" href="#home">
           <img
@@ -458,6 +501,8 @@ export function PhotographySite() {
         onOpenStory={setActiveStory}
       />
 
+      <PhotographySequence />
+
       <section className="photo-photographer" id="photographer" aria-labelledby="photo-photographer-title">
         <div className="photo-photographer-layout">
           <div className="photo-photographer-portrait">
@@ -491,20 +536,6 @@ export function PhotographySite() {
         </div>
       </section>
 
-      <Reveal className="photo-intro">
-        <p className="photo-eyebrow">PEOPLE, PLACES & PURPOSEFUL MOMENTS</p>
-        <h2>
-          Stories worth telling,
-          <br />
-          <em>moments worth keeping.</em>
-        </h2>
-        <p>
-          Style Studio photographs weddings across faiths, birthdays and family
-          milestones, cultural celebrations, business events, and press
-          assignments with care and attention to the moments that matter.
-        </p>
-      </Reveal>
-
       <section className="photo-event-services" id="event-services">
         <Reveal className="photo-section-heading">
           <div>
@@ -516,7 +547,7 @@ export function PhotographySite() {
         <div className="photo-event-grid">
           {eventServices.map((service, index) => (
             <Reveal key={service.number} className="photo-event-card-reveal" delay={index * 0.1}>
-              <article className="photo-event-card">
+              <article className="photo-event-card" onPointerMove={(event) => { if (event.pointerType === "touch") return; const r = event.currentTarget.getBoundingClientRect(); const x = (event.clientX - r.left) / r.width; const y = (event.clientY - r.top) / r.height; event.currentTarget.style.setProperty("--card-pointer-x", String(x * 100) + "%"); event.currentTarget.style.setProperty("--card-pointer-y", String(y * 100) + "%"); event.currentTarget.style.setProperty("--card-rotate-x", String((0.5 - y) * 3) + "deg"); event.currentTarget.style.setProperty("--card-rotate-y", String((x - 0.5) * 3) + "deg"); }} onPointerLeave={(event) => { ["--card-pointer-x","--card-pointer-y","--card-rotate-x","--card-rotate-y"].forEach((key) => event.currentTarget.style.removeProperty(key)); }}>
                 <span className="photo-event-number">{service.number}</span>
                 <h3>{service.title}</h3>
                 <p>{service.description}</p>
@@ -544,6 +575,8 @@ export function PhotographySite() {
           </p>
         </Reveal>
       </section>
+
+      <PhotographyShowcase projects={showcaseProjects} onOpenStory={setActiveStory} />
 
       <section className="photo-stories" id="stories">
         <Reveal className="photo-section-heading">
